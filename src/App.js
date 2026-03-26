@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
- 
+import { useState } from "react";
+
 // ─── Colour tokens (from Stitch Tailwind config) ───────────────────────────
 const C = {
   bg:             "#0e0e0e",
@@ -18,14 +18,14 @@ const C = {
   onSurfaceVar:   "#adaaaa",
   outlineVar:     "#494847",
 };
-//comment 
+
 // ─── Global styles injected once ──────────────────────────────────────────
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=swap');
- 
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   body {
     background: ${C.bg};
     color: ${C.onSurface};
@@ -33,13 +33,13 @@ const GLOBAL_CSS = `
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
   }
- 
+
   input { color: inherit; }
   input::placeholder { color: ${C.onSurfaceVar}; }
   input:focus { outline: none; }
- 
+
   button { cursor: pointer; font-family: inherit; border: none; }
- 
+
   .material-symbols-outlined {
     font-family: 'Material Symbols Outlined';
     font-weight: normal;
@@ -55,18 +55,18 @@ const GLOBAL_CSS = `
     font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
     user-select: none;
   }
- 
+
   ::-webkit-scrollbar { width: 0; height: 0; }
- 
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   .fade-in { animation: fadeIn 0.4s ease forwards; }
 `;
- 
+
 // ─── Shared components ────────────────────────────────────────────────────
- 
+
 function Icon({ name, size = 24, color, style = {} }) {
   return (
     <span
@@ -77,7 +77,7 @@ function Icon({ name, size = 24, color, style = {} }) {
     </span>
   );
 }
- 
+
 function TopBar({ activeTab, onTabChange }) {
   const tabs = ["Home", "Insights", "Mirror"];
   return (
@@ -98,7 +98,7 @@ function TopBar({ activeTab, onTabChange }) {
           color: C.primary, letterSpacing: "-0.04em",
         }}>MoneyMirror</span>
       </div>
- 
+
       {/* Nav tabs */}
       <nav style={{ display: "flex", gap: 40 }}>
         {tabs.map(tab => (
@@ -120,7 +120,7 @@ function TopBar({ activeTab, onTabChange }) {
           </button>
         ))}
       </nav>
- 
+
       {/* Avatar */}
       <div style={{
         width: 38, height: 38, borderRadius: "50%",
@@ -133,7 +133,7 @@ function TopBar({ activeTab, onTabChange }) {
     </header>
   );
 }
- 
+
 function BottomNav({ activeTab, onTabChange }) {
   const items = [
     { tab: "Home",     icon: "home_max" },
@@ -178,7 +178,7 @@ function BottomNav({ activeTab, onTabChange }) {
     </nav>
   );
 }
- 
+
 // ─── Decorative glow blobs (reused on every screen) ───────────────────────
 function GlowBlobs() {
   return (
@@ -198,53 +198,49 @@ function GlowBlobs() {
     </div>
   );
 }
- 
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SCREEN 1 — ONBOARDING
 // ═══════════════════════════════════════════════════════════════════════════
- 
-function OnboardingScreen({ onComplete }) {
-  const step2Ref = useRef(null);
- const step3Ref = useRef(null);
- const step4Ref = useRef(null);
 
+function OnboardingScreen({ onComplete }) {
   const [step, setStep]       = useState(1);
   const [income, setIncome]   = useState("");
   const [fixed, setFixed]     = useState({ rent: "", transport: "", insurance: "", debt: "" });
   const [categories, setCategories] = useState([]);
   const [savings, setSavings] = useState(50000);
- 
+
   const totalSteps = 4;
- 
+
   const fixedFields = [
     { key: "rent",      icon: "home_work",       label: "Rent & Utilities" },
     { key: "transport", icon: "commute",          label: "Transport" },
     { key: "insurance", icon: "health_and_safety",label: "Insurance" },
     { key: "debt",      icon: "credit_card",      label: "Debt Repayment" },
   ];
- 
+
   const lifestyleItems = [
     { key: "dining",        icon: "restaurant",    label: "Dining" },
     { key: "shopping",      icon: "shopping_bag",  label: "Shopping" },
     { key: "travel",        icon: "flight_takeoff",label: "Travel" },
     { key: "subscriptions", icon: "subscriptions", label: "Subscriptions" },
   ];
- 
+
   const toggleCategory = (key) =>
     setCategories(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
- 
+
   const formatRupee = (val) => {
     const n = parseInt(val.replace(/\D/g, ""), 10);
     if (isNaN(n)) return "₹0";
     return "₹" + n.toLocaleString("en-IN");
   };
- 
+
   return (
     <div style={{ minHeight: "100dvh", background: C.bg, position: "relative" }}>
       <GlowBlobs />
- 
+
       {/* Header */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
@@ -267,7 +263,7 @@ function OnboardingScreen({ onComplete }) {
           color: C.onSurfaceVar,
         }}>Exit</span>
       </header>
- 
+
       {/* Progress dots */}
       <div style={{
         position: "fixed", top: 88, left: "50%", transform: "translateX(-50%)",
@@ -281,7 +277,7 @@ function OnboardingScreen({ onComplete }) {
           }} />
         ))}
       </div>
- 
+
       {/* Content */}
       <main style={{
         position: "relative", zIndex: 1,
@@ -290,7 +286,7 @@ function OnboardingScreen({ onComplete }) {
         display: "flex", flexDirection: "column",
         alignItems: "center", gap: 80,
       }}>
- 
+
         {/* STEP 1 — Income */}
         {step >= 1 && (
           <section className="fade-in" style={{ width: "100%", textAlign: "center" }}>
@@ -329,11 +325,10 @@ function OnboardingScreen({ onComplete }) {
             </div>
           </section>
         )}
- 
+
         {/* STEP 2 — Fixed outflows */}
         {step >= 2 && (
-          <section ref={step2Ref}
-          className="fade-in" style={{ width: "100%" }}>
+          <section className="fade-in" style={{ width: "100%" }}>
             <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, marginBottom: 20, textAlign: "center" }}>
               Step 02 / The Anchors
             </p>
@@ -378,7 +373,7 @@ function OnboardingScreen({ onComplete }) {
             </div>
           </section>
         )}
- 
+
         {/* STEP 3 — Lifestyle */}
         {step >= 3 && (
           <section className="fade-in" style={{ width: "100%" }}>
@@ -424,7 +419,7 @@ function OnboardingScreen({ onComplete }) {
             </div>
           </section>
         )}
- 
+
         {/* STEP 4 — Savings goal */}
         {step >= 4 && (
           <section className="fade-in" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -472,7 +467,7 @@ function OnboardingScreen({ onComplete }) {
                   transform: "translate(-50%, -50%)",
                   width: 28, height: 28, borderRadius: "50%",
                   background: C.onSurface,
-               boxShadow : `0 0 6px ${C.primary}33`,
+                  boxShadow: `0 0 0 6px ${C.primary}33`,
                   pointerEvents: "none",
                 }} />
               </div>
@@ -484,69 +479,50 @@ function OnboardingScreen({ onComplete }) {
           </section>
         )}
       </main>
- 
+
       {/* Fixed CTA footer */}
-      <footer
-        style={{
+      <footer style={{
         position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
         padding: "24px 32px 32px",
         background: `linear-gradient(to top, ${C.bg} 60%, transparent)`,
-      }}
+      }}>
         <div style={{ maxWidth: 768, margin: "0 auto" }}>
-           {step < totalSteps ? (
-            <button>
-    onClick={() => {
-      setStep(s => {
-        const next = Math.min(s + 1, totalSteps);
-
-        if (next === 2) {
-          setTimeout(() => {
-            step2Ref.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
-        }
-
-        return next;
-      });
-    }}
-    style={{
-      width: "100%",
-      height: 72,
-      background: C.primary,
-      color: C.onPrimary,
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontWeight: 800,
-      fontSize: 16,
-      textTransform: "uppercase",
-      letterSpacing: "0.2em",
-      border: "none",
-      borderRadius: 10,
-      boxShadow: `0 0 40px ${C.primary}44`,
-      transition: "opacity 0.2s, transform 0.1s",
-    }}
-  
-    Continue →
-  </button>
-) : (
-  <button
-    onClick={onComplete}
-    style={{
-      width: "100%",
-      height: 72,
-      background: C.primary,
-      color: C.onPrimary,
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontWeight: 800,
-      fontSize: 16,
-      textTransform: "uppercase",
-      letterSpacing: "0.2em",
-      border: "none",
-      borderRadius: 10,
-      boxShadow: `0 0 40px ${C.primary}44`,
-    }}
-  >
-    SHOW ME THE TRUTH
-  </button>
-)}
+          {step < totalSteps ? (
+            <button
+              onClick={() => setStep(s => Math.min(s + 1, totalSteps))}
+              style={{
+                width: "100%", height: 72,
+                background: C.primary, color: C.onPrimary,
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 800, fontSize: 16,
+                textTransform: "uppercase", letterSpacing: "0.2em",
+                border: "none", borderRadius: 10,
+                boxShadow: `0 0 40px ${C.primary}44`,
+                transition: "opacity 0.2s, transform 0.1s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+              onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+              onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
+              onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+            >
+              Continue →
+            </button>
+          ) : (
+            <button
+              onClick={onComplete}
+              style={{
+                width: "100%", height: 72,
+                background: C.primary, color: C.onPrimary,
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 800, fontSize: 16,
+                textTransform: "uppercase", letterSpacing: "0.2em",
+                border: "none", borderRadius: 10,
+                boxShadow: `0 0 40px ${C.primary}44`,
+              }}
+            >
+              SHOW ME THE TRUTH
+            </button>
+          )}
           <p style={{
             textAlign: "center", marginTop: 16,
             fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em",
@@ -556,13 +532,14 @@ function OnboardingScreen({ onComplete }) {
           </p>
         </div>
       </footer>
+    </div>
   );
 }
- 
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SCREEN 2 — HOME DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
- 
+
 function HomeScreen({ onTabChange }) {
   return (
     <div style={{ minHeight: "100dvh", background: C.bg, position: "relative" }}>
@@ -588,10 +565,10 @@ function HomeScreen({ onTabChange }) {
           </h1>
           <div style={{ width: 2, height: 48, background: `${C.primary}33`, borderRadius: 1, margin: "24px auto 0" }} />
         </section>
- 
+
         {/* Bento grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 16, marginBottom: 80 }}>
- 
+
           {/* Card 1 — Committed */}
           <div style={{
             gridColumn: "span 7",
@@ -625,7 +602,7 @@ function HomeScreen({ onTabChange }) {
               </p>
             </div>
           </div>
- 
+
           {/* Card 2 — Dining */}
           <div style={{
             gridColumn: "span 5",
@@ -660,7 +637,7 @@ function HomeScreen({ onTabChange }) {
               High
             </div>
           </div>
- 
+
           {/* Card 3 — Ghosting subs (full width) */}
           <div style={{
             gridColumn: "span 12",
@@ -703,7 +680,7 @@ function HomeScreen({ onTabChange }) {
             </button>
           </div>
         </div>
- 
+
         {/* CTA */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           <button
@@ -729,11 +706,11 @@ function HomeScreen({ onTabChange }) {
     </div>
   );
 }
- 
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SCREEN 3 — INSIGHTS / PROJECTIONS
 // ═══════════════════════════════════════════════════════════════════════════
- 
+
 function InsightsScreen() {
   const scenarios = [
     {
@@ -753,7 +730,7 @@ function InsightsScreen() {
       featured: true,
     },
   ];
- 
+
   return (
     <div style={{ minHeight: "100dvh", background: C.bg, position: "relative" }}>
       <GlowBlobs />
@@ -775,7 +752,7 @@ function InsightsScreen() {
             A predictive view of your financial trajectory based on your current velocity.
           </p>
         </section>
- 
+
         {/* Scenario cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 80 }}>
           {scenarios.map(s => (
@@ -828,7 +805,7 @@ function InsightsScreen() {
             </div>
           ))}
         </div>
- 
+
         {/* Comparison bars */}
         <section style={{
           background: C.surfaceLow, borderRadius: 16, padding: 48, marginBottom: 64,
@@ -864,7 +841,7 @@ function InsightsScreen() {
             </div>
           </div>
         </section>
- 
+
         {/* CTA */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           <button style={{
@@ -888,31 +865,31 @@ function InsightsScreen() {
     </div>
   );
 }
- 
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ROOT APP
 // ═══════════════════════════════════════════════════════════════════════════
- 
+
 export default function App() {
   const [screen, setScreen] = useState("onboarding"); // "onboarding" | "app"
   const [activeTab, setActiveTab] = useState("Home");
- 
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (screen !== "app") setScreen("app");
   };
- 
+
   return (
     <>
       {/* Inject global CSS once */}
       <style>{GLOBAL_CSS}</style>
- 
+
       {screen === "onboarding" ? (
         <OnboardingScreen onComplete={() => setScreen("app")} />
       ) : (
         <div>
           <TopBar activeTab={activeTab} onTabChange={handleTabChange} />
- 
+
           {activeTab === "Home"     && <HomeScreen     onTabChange={handleTabChange} />}
           {activeTab === "Insights" && <InsightsScreen />}
           {activeTab === "Mirror"   && (
@@ -926,7 +903,7 @@ export default function App() {
               <p style={{ color: "#adaaaa", fontSize: 14 }}>Coming soon</p>
             </div>
           )}
- 
+
           <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
       )}
