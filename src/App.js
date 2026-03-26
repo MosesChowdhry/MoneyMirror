@@ -18,7 +18,7 @@ const C = {
   onSurfaceVar:   "#adaaaa",
   outlineVar:     "#494847",
 };
- 
+//comment 
 // ─── Global styles injected once ──────────────────────────────────────────
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap');
