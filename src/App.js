@@ -205,357 +205,100 @@ function GlowBlobs() {
  
 function OnboardingScreen({ onComplete }) {
   const step2Ref = useRef(null);
- const step3Ref = useRef(null);
- const step4Ref = useRef(null);
 
-  const [step, setStep]       = useState(1);
-  const [income, setIncome]   = useState("");
-  const [fixed, setFixed]     = useState({ rent: "", transport: "", insurance: "", debt: "" });
-  const [categories, setCategories] = useState([]);
-  const [savings, setSavings] = useState(50000);
- 
+  const [step, setStep] = useState(1);
   const totalSteps = 4;
- 
-  const fixedFields = [
-    { key: "rent",      icon: "home_work",       label: "Rent & Utilities" },
-    { key: "transport", icon: "commute",          label: "Transport" },
-    { key: "insurance", icon: "health_and_safety",label: "Insurance" },
-    { key: "debt",      icon: "credit_card",      label: "Debt Repayment" },
-  ];
- 
-  const lifestyleItems = [
-    { key: "dining",        icon: "restaurant",    label: "Dining" },
-    { key: "shopping",      icon: "shopping_bag",  label: "Shopping" },
-    { key: "travel",        icon: "flight_takeoff",label: "Travel" },
-    { key: "subscriptions", icon: "subscriptions", label: "Subscriptions" },
-  ];
- 
-  const toggleCategory = (key) =>
-    setCategories(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    );
- 
-  const formatRupee = (val) => {
-    const n = parseInt(val.replace(/\D/g, ""), 10);
-    if (isNaN(n)) return "₹0";
-    return "₹" + n.toLocaleString("en-IN");
-  };
- 
+
   return (
-    <div style={{ minHeight: "100dvh", background: C.bg, position: "relative" }}>
-      <GlowBlobs />
- 
-      {/* Header */}
-      <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
-        background: C.bg, height: 72,
-        display: "flex", alignItems: "center",
-        justifyContent: "space-between", padding: "0 44px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon name="blur_on" size={26} color={C.primary} />
-          <span style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontWeight: 900, fontSize: 22,
-            color: C.primary, letterSpacing: "-0.04em",
-          }}>MoneyMirror</span>
-        </div>
-        <span style={{
-          fontFamily: "'Manrope', sans-serif",
-          fontSize: 10, fontWeight: 700,
-          textTransform: "uppercase", letterSpacing: "0.2em",
-          color: C.onSurfaceVar,
-        }}>Exit</span>
-      </header>
- 
-      {/* Progress dots */}
-      <div style={{
-        position: "fixed", top: 88, left: "50%", transform: "translateX(-50%)",
-        display: "flex", gap: 10, zIndex: 40,
-      }}>
-        {Array.from({ length: totalSteps }).map((_, i) => (
-          <div key={i} style={{
-            height: 4, width: 44, borderRadius: 4,
-            background: i < step ? C.primary : C.surfaceHighest,
-            transition: "background 0.3s",
-          }} />
-        ))}
-      </div>
- 
-      {/* Content */}
-      <main style={{
-        position: "relative", zIndex: 1,
-        padding: "140px 32px 160px",
-        maxWidth: 768, margin: "0 auto",
-        display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 80,
-      }}>
- 
-        {/* STEP 1 — Income */}
-        {step >= 1 && (
-          <section className="fade-in" style={{ width: "100%", textAlign: "center" }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, marginBottom: 20 }}>
-              Step 01 / Monthly Fuel
-            </p>
-            <h1 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 800, fontSize: "clamp(36px, 7vw, 72px)",
-              letterSpacing: "-0.04em", lineHeight: 1,
-              marginBottom: 40, color: C.onSurface,
-            }}>
-              What enters the mirror each month?
-            </h1>
-            <div style={{ position: "relative", display: "inline-block", width: "100%", maxWidth: 480 }}>
-              <input
-                type="text"
-                placeholder="₹0"
-                value={income}
-                onChange={e => setIncome(e.target.value)}
-                style={{
-                  background: "transparent", border: "none",
-                  textAlign: "center",
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontWeight: 900,
-                  fontSize: "clamp(56px, 10vw, 96px)",
-                  color: C.primary,
-                  width: "100%", cursor: "pointer",
-                  letterSpacing: "-0.04em",
-                }}
-              />
-              <div style={{
-                height: 1, background: `${C.primary}33`,
-                marginTop: 8, borderRadius: 1,
-              }} />
-            </div>
-          </section>
-        )}
- 
-        {/* STEP 2 — Fixed outflows */}
-        {step >= 2 && (
-          <section ref={step2Ref}
-          className="fade-in" style={{ width: "100%" }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, marginBottom: 20, textAlign: "center" }}>
-              Step 02 / The Anchors
-            </p>
-            <h2 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700, fontSize: "clamp(28px, 4vw, 44px)",
-              letterSpacing: "-0.03em", marginBottom: 48, textAlign: "center",
-            }}>
-              Define your non-negotiables.
-            </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-              {fixedFields.map(f => (
-                <div key={f.key} style={{
-                  padding: "28px 32px",
-                  background: C.surfaceLow,
-                  borderRadius: 12,
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  transition: "background 0.2s",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceHigh}
-                  onMouseLeave={e => e.currentTarget.style.background = C.surfaceLow}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                    <Icon name={f.icon} size={22} color={C.onSurfaceVar} />
-                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: 16 }}>{f.label}</span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="₹0"
-                    value={fixed[f.key]}
-                    onChange={e => setFixed(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    style={{
-                      background: "transparent", border: "none",
-                      textAlign: "right",
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontWeight: 700, fontSize: 20,
-                      color: C.onSurfaceVar, width: 90,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
- 
-        {/* STEP 3 — Lifestyle */}
-        {step >= 3 && (
-          <section className="fade-in" style={{ width: "100%" }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, marginBottom: 20, textAlign: "center" }}>
-              Step 03 / Lifestyle Pulse
-            </p>
-            <h2 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700, fontSize: "clamp(28px, 4vw, 44px)",
-              letterSpacing: "-0.03em", marginBottom: 48, textAlign: "center",
-            }}>
-              Where does the rest flow?
-            </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, maxWidth: 560, margin: "0 auto" }}>
-              {lifestyleItems.map(item => {
-                const active = categories.includes(item.key);
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => toggleCategory(item.key)}
-                    style={{
-                      aspectRatio: "1/1",
-                      background: active ? `${C.primary}18` : C.surfaceLow,
-                      border: `1px solid ${active ? C.primary + "55" : "transparent"}`,
-                      borderRadius: 12,
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "center", gap: 12,
-                      transition: "all 0.2s",
-                      transform: active ? "scale(0.97)" : "scale(1)",
-                    }}
-                  >
-                    <Icon name={item.icon} size={32} color={active ? C.primary : C.onSurfaceVar} />
-                    <span style={{
-                      fontSize: 10, fontWeight: 700,
-                      textTransform: "uppercase", letterSpacing: "0.2em",
-                      color: active ? C.onSurface : C.onSurfaceVar,
-                    }}>
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
- 
-        {/* STEP 4 — Savings goal */}
-        {step >= 4 && (
-          <section className="fade-in" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, marginBottom: 20 }}>
-              Step 04 / The North Star
-            </p>
-            <h2 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700, fontSize: "clamp(28px, 4vw, 44px)",
-              letterSpacing: "-0.03em", marginBottom: 48, textAlign: "center",
-            }}>
-              What's the end game?
-            </h2>
-            <div style={{ width: "100%", maxWidth: 440 }}>
-              <div style={{ textAlign: "center", marginBottom: 40 }}>
-                <span style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontWeight: 900, fontSize: 56,
-                  color: C.primary, letterSpacing: "-0.04em",
-                }}>
-                  {formatRupee(String(savings))}
-                </span>
-                <p style={{ color: C.onSurfaceVar, marginTop: 8, fontSize: 14 }}>Target Monthly Savings</p>
-              </div>
-              {/* Slider */}
-              <div style={{ position: "relative", height: 8, background: C.surfaceHighest, borderRadius: 4, marginBottom: 16 }}>
-                <div style={{
-                  position: "absolute", top: 0, left: 0, height: "100%",
-                  width: `${(savings / 200000) * 100}%`,
-                  background: C.primary, borderRadius: 4,
-                  boxShadow: `0 0 12px ${C.primary}66`,
-                }} />
-                <input
-                  type="range" min={0} max={200000} step={1000}
-                  value={savings}
-                  onChange={e => setSavings(Number(e.target.value))}
-                  style={{
-                    position: "absolute", inset: 0, width: "100%", opacity: 0,
-                    cursor: "pointer", height: "100%",
-                  }}
-                />
-                <div style={{
-                  position: "absolute", top: "50%",
-                  left: `${(savings / 200000) * 100}%`,
-                  transform: "translate(-50%, -50%)",
-                  width: 28, height: 28, borderRadius: "50%",
-                  background: C.onSurface,
-               boxShadow : `0 0 6px ${C.primary}33`,
-                  pointerEvents: "none",
-                }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, opacity: 0.5 }}>Survival</span>
-                <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em", color: C.onSurfaceVar, opacity: 0.5 }}>Independence</span>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
- 
+    <div>
+
       {/* Fixed CTA footer */}
       <footer
         style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
-        padding: "24px 32px 32px",
-        background: `linear-gradient(to top, ${C.bg} 60%, transparent)`,
-      }}
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          padding: "24px 32px 32px",
+          background: `linear-gradient(to top, #0e0e0e 60%, transparent)`,
+        }}
+      >
         <div style={{ maxWidth: 768, margin: "0 auto" }}>
-           {step < totalSteps ? (
-            <button>
-    onClick={() => {
-      setStep(s => {
-        const next = Math.min(s + 1, totalSteps);
 
-        if (next === 2) {
-          setTimeout(() => {
-            step2Ref.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
-        }
+          {step < totalSteps ? (
+            <button
+              onClick={() => {
+                setStep((s) => {
+                  const next = Math.min(s + 1, totalSteps);
 
-        return next;
-      });
-    }}
-    style={{
-      width: "100%",
-      height: 72,
-      background: C.primary,
-      color: C.onPrimary,
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontWeight: 800,
-      fontSize: 16,
-      textTransform: "uppercase",
-      letterSpacing: "0.2em",
-      border: "none",
-      borderRadius: 10,
-      boxShadow: `0 0 40px ${C.primary}44`,
-      transition: "opacity 0.2s, transform 0.1s",
-    }}
-  
-    Continue →
-  </button>
-) : (
-  <button
-    onClick={onComplete}
-    style={{
-      width: "100%",
-      height: 72,
-      background: C.primary,
-      color: C.onPrimary,
-      fontFamily: "'Space Grotesk', sans-serif",
-      fontWeight: 800,
-      fontSize: 16,
-      textTransform: "uppercase",
-      letterSpacing: "0.2em",
-      border: "none",
-      borderRadius: 10,
-      boxShadow: `0 0 40px ${C.primary}44`,
-    }}
-  >
-    SHOW ME THE TRUTH
-  </button>
-)}
-          <p style={{
-            textAlign: "center", marginTop: 16,
-            fontSize: 9, textTransform: "uppercase", letterSpacing: "0.2em",
-            color: C.onSurfaceVar, opacity: 0.4,
-          }}>
+                  if (next === 2) {
+                    setTimeout(() => {
+                      step2Ref.current?.scrollIntoView({
+                        behavior: "smooth",
+                      });
+                    }, 100);
+                  }
+
+                  return next;
+                });
+              }}
+              style={{
+                width: "100%",
+                height: 72,
+                background: "#3fff8b",
+                color: "#005d2c",
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 800,
+                fontSize: 16,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                border: "none",
+                borderRadius: 10,
+                boxShadow: `0 0 40px #3fff8b44`,
+                transition: "opacity 0.2s, transform 0.1s",
+              }}
+            >
+              Continue →
+            </button>
+          ) : (
+            <button
+              onClick={onComplete}
+              style={{
+                width: "100%",
+                height: 72,
+                background: "#3fff8b",
+                color: "#005d2c",
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 800,
+                fontSize: 16,
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                border: "none",
+                borderRadius: 10,
+                boxShadow: `0 0 40px #3fff8b44`,
+              }}
+            >
+              SHOW ME THE TRUTH
+            </button>
+          )}
+
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: 16,
+              fontSize: 9,
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+              color: "#adaaaa",
+              opacity: 0.4,
+            }}
+          >
             Data is encrypted and private to your reflection.
           </p>
         </div>
       </footer>
+    </div>
   );
 }
  
