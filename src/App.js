@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
- 
+ //comment test 1
 // ─── Colour tokens (from Stitch Tailwind config) ───────────────────────────
 const C = {
   bg:             "#0e0e0e",
