@@ -205,101 +205,125 @@ function GlowBlobs() {
  
 function OnboardingScreen({ onComplete }) {
   const step2Ref = useRef(null);
-
   const [step, setStep] = useState(1);
   const totalSteps = 4;
-
+  const [income, setIncome] = useState(0);
   return (
-    <div>
+  <div style={{ minHeight: "100dvh", background: "#0e0e0e" }}>
 
-      {/* Fixed CTA footer */}
-      <footer
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          padding: "24px 32px 32px",
-          background: `linear-gradient(to top, #0e0e0e 60%, transparent)`,
-        }}
-      >
-        <div style={{ maxWidth: 768, margin: "0 auto" }}>
+    {/* MAIN CONTENT */}
+    <main style={{
+      padding: "140px 32px 160px",
+      maxWidth: 768,
+      margin: "0 auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: 80,
+      color: "white"
+    }}>
 
-          {step < totalSteps ? (
-            <button
-              onClick={() => {
-                setStep((s) => {
-                  const next = Math.min(s + 1, totalSteps);
+      {/* STEP 1 */}
+      {step >= 1 && (
+        <section style={{ textAlign: "center" }}>
+          <h1>Step 1 — Income</h1>
+          <p>What enters the mirror each month?</p>
+          <input
+          type="number" placeholder= "Enter your Monthly income"
+          value={income} onChange={(e) => setIncome(Number(e.target.value))}
+          style={{
+            marginTop: 20,
+            padding: 16,
+            width: "100%",
+            bordrRadius: 8,
+            border:"none",
+            fontSize: 16,
+          }}
+/>
+        </section>
+      )}
 
-                  if (next === 2) {
-                    setTimeout(() => {
-                      step2Ref.current?.scrollIntoView({
-                        behavior: "smooth",
-                      });
-                    }, 100);
-                  }
+      {/* STEP 2 */}
+      {step >= 2 && (
+        <section ref={step2Ref}>
+         
+          <h1>Step 2 — Expenses</h1>
+          <p>Define your non-negotiables</p>
+        </section>
+      )}
 
-                  return next;
-                });
-              }}
-              style={{
-                width: "100%",
-                height: 72,
-                background: "#3fff8b",
-                color: "#005d2c",
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: 800,
-                fontSize: 16,
-                textTransform: "uppercase",
-                letterSpacing: "0.2em",
-                border: "none",
-                borderRadius: 10,
-                boxShadow: `0 0 40px #3fff8b44`,
-                transition: "opacity 0.2s, transform 0.1s",
-              }}
-            >
-              Continue →
-            </button>
-          ) : (
-            <button
-              onClick={onComplete}
-              style={{
-                width: "100%",
-                height: 72,
-                background: "#3fff8b",
-                color: "#005d2c",
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: 800,
-                fontSize: 16,
-                textTransform: "uppercase",
-                letterSpacing: "0.2em",
-                border: "none",
-                borderRadius: 10,
-                boxShadow: `0 0 40px #3fff8b44`,
-              }}
-            >
-              SHOW ME THE TRUTH
-            </button>
-          )}
+      {/* STEP 3 */}
+      {step >= 3 && (
+        <section>
+          <h1>Step 3 — Lifestyle</h1>
+          <p>Where does money go?</p>
+        </section>
+      )}
 
-          <p
+      {/* STEP 4 */}
+      {step >= 4 && (
+        <section>
+          <h1>Step 4 — Savings</h1>
+          <p>Set your goal</p>
+        </section>
+      )}
+
+    </main>
+
+    {/* FIXED FOOTER (WORKING VERSION) */}
+    <footer
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        padding: "24px 32px 32px",
+        background: `linear-gradient(to top, #0e0e0e 60%, transparent)`,
+      }}
+    >
+      <div style={{ maxWidth: 768, margin: "0 auto" }}>
+
+        {step < totalSteps ? (
+          <button
+            onClick={() => {
+              setStep((s) => {
+                const next = Math.min(s + 1, totalSteps);
+
+                if (next === 2) {
+                  setTimeout(() => {
+                    step2Ref.current?.scrollIntoView({
+                      behavior: "smooth",
+                    });
+                  }, 100);
+                }
+
+                return next;
+              });
+            }}
             style={{
-              textAlign: "center",
-              marginTop: 16,
-              fontSize: 9,
+              width: "100%",
+              height: 72,
+              background: "#3fff8b",
+              color: "#005d2c",
+              fontWeight: 800,
+              fontSize: 16,
               textTransform: "uppercase",
-              letterSpacing: "0.2em",
-              color: "#adaaaa",
-              opacity: 0.4,
+              borderRadius: 10,
             }}
           >
-            Data is encrypted and private to your reflection.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
+            Continue →
+          </button>
+        ) : (
+          <button onClick={onComplete}>
+            SHOW ME THE TRUTH
+          </button>
+        )}
+
+      </div>
+    </footer>
+
+  </div>
+);
 }
  
 // ═══════════════════════════════════════════════════════════════════════════
