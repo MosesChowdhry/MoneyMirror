@@ -154,7 +154,8 @@ function compute(s) {
     daysPassed, daysLeft, daysInMonth, burnRate, projectedEnd,
     status, statusColor,
   };
-}
+} 
+console.log("deploy test");
 
 // ─── Atom store (shallow updates only — no deep clone on every keystroke) ──
 function useStore() {
