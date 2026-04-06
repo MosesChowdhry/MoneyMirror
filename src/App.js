@@ -1,5 +1,67 @@
 import React, { useState, useEffect, useRef } from "react";
 
+/* ================= REAL DATA ENGINE ================= */
+
+const defaultUserData = {
+  income: 0,
+  fixed: { rent: 0, transport: 0, insurance: 0, debt: 0 },
+  lifestyle: { dining: 0, shopping: 0, subscriptions: 0, travel: 0 },
+  savings: 20000,
+};
+
+function getStoredData() {
+  try {
+    const d = localStorage.getItem("mm_data");
+    return d ? JSON.parse(d) : defaultUserData;
+  } catch {
+    return defaultUserData;
+  }
+}
+
+function saveData(data) {
+  localStorage.setItem("mm_data", JSON.stringify(data));
+}
+
+function calculateAll(data) {
+  const fixedTotal = Object.values(data.fixed || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+  const lifestyleTotal = Object.values(data.lifestyle || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+
+  const income = Number(data.income) || 0;
+  const savings = Number(data.savings) || 0;
+
+  const total = fixedTotal + lifestyleTotal + savings;
+  const remaining = income - total;
+
+  const percent = income > 0
+    ? Math.round((total / income) * 100)
+    : 0;
+
+  return {
+    fixedTotal,
+    lifestyleTotal,
+    total,
+    remaining,
+    percent
+  };
+}
+
+const FINANCIAL_DATA = {
+  income: 0,
+  fixed: { rent: 0, transport: 0, insurance: 0, debt: 0 },
+  totalFixed: 0,
+  dining: 0,
+  overspent: 0,
+  unusedSubs: 0,
+  subCostPerMonth: 0,
+  savingsTarget: 0,
+  deltas: {
+    overall: 0,
+    dining: 0,
+    subs: 0,
+    savings: 0,
+  },
+};
+
 // ─── Colour tokens (from Stitch Tailwind config) ───────────────────────────
 const C = {
   bg: "#0e0e0e",
@@ -20,24 +82,7 @@ const C = {
   outlineVar: "#494847",
 };
 
-// ─── Mock financial data ──────────────────────────────────────────────────
-const FINANCIAL_DATA = {
-  income: 80000,
-  fixed: { rent: 22000, transport: 8600, insurance: 12000, debt: 7000 },
-  totalFixed: 49600,
-  dining: 4200,
-  overspent: 12450,
-  unusedSubs: 3,
-  subCostPerMonth: 1497,
-  savingsTarget: 50000,
-  // Delta comparisons (mock)
-  deltas: {
-    overall: 2300,        // positive = better than last month
-    dining: -12,          // percentage change
-    subs: 0,
-    savings: -800,        // negative = worse than last week
-  },
-};
+
 
 // ─── Memory Hook — sticky line ────────────────────────────────────────────
 const STICKY_LINE = `You're ₹${FINANCIAL_DATA.overspent.toLocaleString("en-IN")} off track this month.`;
@@ -707,13 +752,33 @@ function OnboardingScreen({ onComplete }) {
 // SCREEN 2 — HOME DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
 
-function HomeScreen({ onTabChange }) {
-  const fState = getFinancialState(FINANCIAL_DATA);
-  const insights = getDerivedInsights(FINANCIAL_DATA);
+
+function HomeScreen({ onTabChange, userData}) {
+  const safeData = userData ||{
+    income:0,
+    fixed:{},
+    lifestyle: {},
+    savings: 0
+  };
+  const calc = calculateAll(safeData);
+const fState = getFinancialState({
+  income: safeData.income,
+  overspent: Math.max(0, -calc.remaining)
+});
+
+const insights = getDerivedInsights({
+  income: safeData.income,
+  totalFixed: calc.fixedTotal,
+  dining: safeData.lifestyle?.dining || 0,
+  overspent: Math.max(0, -calc.remaining),
+  unusedSubs: 0,
+  subCostPerMonth: 0,
+  savingsTarget: safeData.savings || 0
+});
   const mirrorInsight = getMirrorInsight(fState);
-  const { value: heroVal, done: heroDone } = useCountUp(FINANCIAL_DATA.overspent, 1600);
+  const { value: heroVal, done: heroDone } = useCountUp(Math.max(0, -calc.remaining), 1600);
   const { value: commitVal, done: commitDone } = useCountUp(insights.commitmentRatio, 1200);
-  const { value: dineVal } = useCountUp(FINANCIAL_DATA.dining, 1000);
+  const { value: dineVal } = useCountUp(safeData.lifestyle?.dining || 0, 1000)
 
   const cardHover = {
     onMouseEnter: e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 16px 48px rgba(0,0,0,0.4)`; },
@@ -1312,8 +1377,34 @@ function MirrorScreen() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export default function App() {
-  const [screen, setScreen] = useState("onboarding"); // "onboarding" | "app"
+  const [screen, setScreen] = useState("onboarding");
   const [activeTab, setActiveTab] = useState("Home");
+
+  // ✅ REAL DATA STATE
+  const [userData, setUserData] = useState(getStoredData());
+
+
+  // ✅ AUTO SAVE
+  useEffect(() => {
+  const cleanData = {
+    income: Number(userData.income) || 0,
+    fixed: {
+      rent: Number(userData.fixed?.rent) || 0,
+      transport: Number(userData.fixed?.transport) || 0,
+      insurance: Number(userData.fixed?.insurance) || 0,
+      debt: Number(userData.fixed?.debt) || 0,
+    },
+    lifestyle: {
+      dining: Number(userData.lifestyle?.dining) || 0,
+      shopping: Number(userData.lifestyle?.shopping) || 0,
+      subscriptions: Number(userData.lifestyle?.subscriptions) || 0,
+      travel: Number(userData.lifestyle?.travel) || 0,
+    },
+    savings: Number(userData.savings) || 0,
+  };
+
+  localStorage.setItem("mm_data", JSON.stringify(cleanData));
+}, [userData]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -1322,18 +1413,34 @@ export default function App() {
 
   return (
     <>
-      {/* Inject global CSS once */}
       <style>{GLOBAL_CSS}</style>
 
       {screen === "onboarding" ? (
-        <OnboardingScreen onComplete={() => setScreen("app")} />
+        <OnboardingScreen
+          onComplete={(data) => {
+            setUserData(data);
+            setScreen("app");
+          }}
+        />
       ) : (
         <div>
           <TopBar activeTab={activeTab} onTabChange={handleTabChange} />
 
-          {activeTab === "Home" && <HomeScreen onTabChange={handleTabChange} />}
-          {activeTab === "Insights" && <InsightsScreen />}
-          {activeTab === "Mirror" && <MirrorScreen />}
+          {activeTab === "Home" && (
+            <HomeScreen
+              onTabChange={handleTabChange}
+              userData={userData}
+              setUserData={setUserData}
+            />
+          )}
+
+          {activeTab === "Insights" && (
+            <InsightsScreen userData={userData} />
+          )}
+
+          {activeTab === "Mirror" && (
+            <MirrorScreen userData={userData} />
+          )}
 
           <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
