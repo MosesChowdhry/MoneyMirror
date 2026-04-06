@@ -1,291 +1,219 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-/* ================= DEFAULT DATA ================= */
+/* ---------------- ENGINE ---------------- */
 
-const defaultData = {
-  income: 0,
-  fixed: { rent: 0 },
-  lifestyle: {
-    dining: 0,
-    subscriptions: [],
-  },
-  savings: 0,
-};
+const num = (v) => Number(v) || 0;
 
-/* ================= SAFE STORAGE ================= */
+function calc(data) {
+  const income = num(data.income.salary) + num(data.income.other);
 
-function getData() {
-  try {
-    const d = JSON.parse(localStorage.getItem("mm_data"));
+  const fixed =
+    num(data.fixed.rent) +
+    num(data.fixed.utilities) +
+    num(data.fixed.emi);
 
-    return {
-      income: Number(d?.income) || 0,
-      fixed: {
-        rent: Number(d?.fixed?.rent) || 0,
-      },
-      lifestyle: {
-        dining: Number(d?.lifestyle?.dining) || 0,
-        subscriptions: Array.isArray(d?.lifestyle?.subscriptions)
-          ? d.lifestyle.subscriptions
-          : [],
-      },
-      savings: Number(d?.savings) || 0,
-    };
-  } catch {
-    return defaultData;
-  }
-}
+  const lifestyle =
+    num(data.lifestyle.dining) +
+    num(data.lifestyle.transport) +
+    num(data.lifestyle.shopping) +
+    num(data.lifestyle.entertainment);
 
-function saveData(data) {
-  localStorage.setItem("mm_data", JSON.stringify(data));
-}
-
-/* ================= ENGINE ================= */
-
-function calculate(data) {
-  const income = Number(data.income) || 0;
-  const fixedTotal = Number(data.fixed.rent) || 0;
-
-  const dining = Number(data.lifestyle.dining) || 0;
-  const subs = data.lifestyle.subscriptions || [];
-
-  const subTotal = subs.reduce((a, s) => a + Number(s.cost || 0), 0);
-  const lifestyleTotal = dining + subTotal;
-
-  const savings = Number(data.savings) || 0;
-  const total = fixedTotal + lifestyleTotal + savings;
-  const remaining = income - total;
-
-  const burnRate = income ? total / income : 0;
-  const disposable = income - fixedTotal;
-  const lifestylePressure = disposable ? lifestyleTotal / disposable : 0;
-  const savingsRate = income ? savings / income : 0;
-
-  let stress = 0;
-  if (burnRate > 1) stress += 40;
-  if (fixedTotal / income > 0.5) stress += 20;
-  if (lifestylePressure > 0.6) stress += 20;
-  if (savingsRate < 0.1) stress += 20;
-
-  const dailySpend = total / 30 || 1;
-  const daysLeft = remaining > 0 ? Math.floor(remaining / dailySpend) : 0;
-  const yearlyLeak = Math.max(0, -remaining) * 12;
-
-  return {
-    dining,
-    subTotal,
-    remaining,
-    stress,
-    daysLeft,
-    yearlyLeak,
-  };
-}
-
-/* ================= SETUP ================= */
-
-function Setup({ onDone }) {
-  const [data, setData] = useState(defaultData);
-
-  return (
-    <div style={{ padding: 40 }}>
-      <h2>MoneyMirror Setup</h2>
-
-      <input
-        placeholder="Income"
-        value={data.income}
-        onChange={(e) =>
-          setData({ ...data, income: Number(e.target.value) })
-        }
-      />
-
-      <input
-        placeholder="Rent"
-        value={data.fixed.rent}
-        onChange={(e) =>
-          setData({
-            ...data,
-            fixed: { ...data.fixed, rent: Number(e.target.value) },
-          })
-        }
-      />
-
-      <input
-        placeholder="Dining"
-        value={data.lifestyle.dining}
-        onChange={(e) =>
-          setData({
-            ...data,
-            lifestyle: {
-              ...data.lifestyle,
-              dining: Number(e.target.value),
-            },
-          })
-        }
-      />
-
-      <input
-        placeholder="Savings"
-        value={data.savings}
-        onChange={(e) =>
-          setData({ ...data, savings: Number(e.target.value) })
-        }
-      />
-
-      <button onClick={() => onDone(data)}>Continue</button>
-    </div>
+  const subs = data.subscriptions.reduce(
+    (sum, s) => sum + num(s.amount),
+    0
   );
+
+  const spend = fixed + lifestyle + subs;
+  const remaining = income - spend;
+
+  let state = "STABLE";
+  if (remaining < 0) state = "BLEEDING";
+  else if (remaining < income * 0.2) state = "TIGHT";
+
+  return { income, fixed, lifestyle, subs, spend, remaining, state };
 }
 
-/* ================= HOME ================= */
+/* ---------------- UI COMPONENTS (OUTSIDE APP) ---------------- */
 
-function Home({ data, setScreen }) {
-  const d = calculate(data);
-
-  const state =
-    d.stress > 60
-      ? { label: "BLEEDING", color: "red" }
-      : d.stress > 30
-      ? { label: "PRESSURE", color: "orange" }
-      : { label: "STABLE", color: "green" };
-
+const Field = React.memo(({ label, value, onChange }) => {
   return (
-    <div style={{ padding: 30, background: "#0e0e0e", color: "white", minHeight: "100vh" }}>
-      <h1 style={{ color: state.color }}>
-        ₹{Math.max(0, -d.remaining)} {state.label}
-      </h1>
-
-      <p>Days Left: {d.daysLeft}</p>
-      <p>Annual Leak: ₹{d.yearlyLeak}</p>
-
-      <hr />
-
-      <h3>Lifestyle</h3>
-
-      <div style={{ display: "grid", gap: 12 }}>
-        <div style={card} onClick={() => setScreen("dining")}>
-          🍽 Dining — ₹{d.dining}
-        </div>
-
-        <div style={card} onClick={() => setScreen("subs")}>
-          📺 Subscriptions — ₹{d.subTotal}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ================= DINING ================= */
-
-function Dining({ data, setData, goBack }) {
-  const dining = data.lifestyle.dining || 0;
-
-  return (
-    <div style={{ padding: 30 }}>
-      <button onClick={goBack}>← Back</button>
-
-      <h2>Dining</h2>
-      <p>₹{dining}</p>
-
-      <button
-        onClick={() => {
-          const newVal = Math.round(dining * 0.8);
-          setData((prev) => ({
-            ...prev,
-            lifestyle: { ...prev.lifestyle, dining: newVal },
-          }));
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 12, color: "#aaa" }}>{label}</div>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        style={{
+          width: "100%",
+          padding: 10,
+          borderRadius: 8,
+          border: "1px solid #333",
+          background: "#111",
+          color: "#fff",
         }}
-      >
-        Cut 20% → Save ₹{Math.round(dining * 0.2)}
-      </button>
+      />
     </div>
+  );
+});
+
+/* ---------------- SCREENS ---------------- */
+
+function Home({ r, setScreen }) {
+  return (
+    <>
+      <h1>₹{r.remaining}</h1>
+      <p>{r.state}</p>
+
+      <div onClick={() => setScreen("income")}>Income ₹{r.income}</div>
+      <div onClick={() => setScreen("fixed")}>Fixed ₹{r.fixed}</div>
+      <div onClick={() => setScreen("lifestyle")}>Lifestyle ₹{r.lifestyle}</div>
+      <div onClick={() => setScreen("subs")}>Subs ₹{r.subs}</div>
+    </>
   );
 }
 
-/* ================= SUBSCRIPTIONS ================= */
+function Income({ data, update, setScreen }) {
+  return (
+    <>
+      <button onClick={() => setScreen("home")}>← Back</button>
+      <h2>Income</h2>
 
-function Subscriptions({ data, setData, goBack }) {
-  const subs = data.lifestyle?.subscriptions || [];
+      <Field
+        label="Salary"
+        value={data.income.salary}
+        onChange={(e) => update("income", "salary", e.target.value)}
+      />
 
-  const remove = (name) => {
+      <Field
+        label="Other"
+        value={data.income.other}
+        onChange={(e) => update("income", "other", e.target.value)}
+      />
+    </>
+  );
+}
+
+function Fixed({ data, update, setScreen }) {
+  return (
+    <>
+      <button onClick={() => setScreen("home")}>← Back</button>
+      <h2>Fixed</h2>
+
+      <Field
+        label="Rent"
+        value={data.fixed.rent}
+        onChange={(e) => update("fixed", "rent", e.target.value)}
+      />
+
+      <Field
+        label="Utilities"
+        value={data.fixed.utilities}
+        onChange={(e) => update("fixed", "utilities", e.target.value)}
+      />
+
+      <Field
+        label="EMI"
+        value={data.fixed.emi}
+        onChange={(e) => update("fixed", "emi", e.target.value)}
+      />
+    </>
+  );
+}
+
+function Lifestyle({ data, update, setScreen }) {
+  return (
+    <>
+      <button onClick={() => setScreen("home")}>← Back</button>
+      <h2>Lifestyle</h2>
+
+      {Object.entries(data.lifestyle).map(([k, v]) => (
+        <Field
+          key={k}
+          label={k}
+          value={v}
+          onChange={(e) => update("lifestyle", k, e.target.value)}
+        />
+      ))}
+    </>
+  );
+}
+
+function Subs({ data, updateSub, addSub, setScreen }) {
+  return (
+    <>
+      <button onClick={() => setScreen("home")}>← Back</button>
+      <h2>Subscriptions</h2>
+
+      <button onClick={addSub}>+ Add</button>
+
+      {data.subscriptions.map((s) => (
+        <div key={s.id}>
+          <Field
+            label="Name"
+            value={s.name}
+            onChange={(e) => updateSub(s.id, "name", e.target.value)}
+          />
+
+          <Field
+            label="Amount"
+            value={s.amount}
+            onChange={(e) => updateSub(s.id, "amount", e.target.value)}
+          />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/* ---------------- APP ---------------- */
+
+export default function App() {
+  const [screen, setScreen] = useState("home");
+
+  const [data, setData] = useState({
+    income: { salary: "", other: "" },
+    fixed: { rent: "", utilities: "", emi: "" },
+    lifestyle: { dining: "", transport: "", shopping: "", entertainment: "" },
+    subscriptions: [],
+  });
+
+  const r = calc(data);
+
+  const update = (section, key, value) => {
     setData((prev) => ({
       ...prev,
-      lifestyle: {
-        ...prev.lifestyle,
-        subscriptions: prev.lifestyle.subscriptions.filter(
-          (s) => s.name !== name
-        ),
+      [section]: {
+        ...prev[section],
+        [key]: value,
       },
     }));
   };
 
+  const addSub = () => {
+    setData((p) => ({
+      ...p,
+      subscriptions: [...p.subscriptions, { id: Date.now(), name: "", amount: "" }],
+    }));
+  };
+
+  const updateSub = (id, field, value) => {
+    setData((p) => ({
+      ...p,
+      subscriptions: p.subscriptions.map((s) =>
+        s.id === id ? { ...s, [field]: value } : s
+      ),
+    }));
+  };
+
   return (
-    <div style={{ padding: 30 }}>
-      <button onClick={goBack}>← Back</button>
-
-      <h2>Subscriptions</h2>
-
-      {subs.length === 0 && <p>No subscriptions yet</p>}
-
-      {subs.map((s) => (
-        <div key={s.name}>
-          {s.name} ₹{s.cost} | renews in {s.renewal}d
-          <button onClick={() => remove(s.name)}>Cancel</button>
-        </div>
-      ))}
-
-      <button
-        onClick={() => {
-          const name = prompt("Name?");
-          if (!name) return;
-
-          const cost = Number(prompt("Cost?")) || 0;
-          const renewal = Number(prompt("Days to renewal?")) || 0;
-
-          setData((prev) => ({
-            ...prev,
-            lifestyle: {
-              ...prev.lifestyle,
-              subscriptions: [
-                ...(prev.lifestyle.subscriptions || []),
-                { name, cost, renewal, lastUsed: 0 },
-              ],
-            },
-          }));
-        }}
-      >
-        + Add Subscription
-      </button>
+    <div style={{ padding: 20, background: "#0f1115", minHeight: "100vh", color: "#fff" }}>
+      {screen === "home" && <Home r={r} setScreen={setScreen} />}
+      {screen === "income" && <Income data={data} update={update} setScreen={setScreen} />}
+      {screen === "fixed" && <Fixed data={data} update={update} setScreen={setScreen} />}
+      {screen === "lifestyle" && <Lifestyle data={data} update={update} setScreen={setScreen} />}
+      {screen === "subs" && (
+        <Subs data={data} updateSub={updateSub} addSub={addSub} setScreen={setScreen} />
+      )}
     </div>
   );
-}
-
-/* ================= CARD ================= */
-
-const card = {
-  padding: 20,
-  background: "#1a1a1a",
-  borderRadius: 12,
-  cursor: "pointer",
-};
-
-/* ================= ROOT ================= */
-
-export default function App() {
-  const [data, setData] = useState(getData());
-  const [screen, setScreen] = useState(!data.income ? "setup" : "home");
-
-  useEffect(() => {
-    saveData(data);
-  }, [data]);
-
-  if (screen === "setup")
-    return <Setup onDone={(d) => { setData(d); setScreen("home"); }} />;
-
-  if (screen === "dining")
-    return <Dining data={data} setData={setData} goBack={() => setScreen("home")} />;
-
-  if (screen === "subs")
-    return <Subscriptions data={data} setData={setData} goBack={() => setScreen("home")} />;
-
-  return <Home data={data} setScreen={setScreen} />;
 }
